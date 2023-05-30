@@ -1,3 +1,7 @@
+## 0.1.0
+
+- Updated enabled building with null-safety
+
 ## 0.0.3
 
 - Fixed "No podspec found"

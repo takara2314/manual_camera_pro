@@ -7,6 +7,7 @@ repository: https://github.com/afonsocraposo/manual_camera
 
 environment:
   sdk: '>=3.0.2 <4.0.0'
+  flutter: ">=1.10.0"
 
 dependencies:
   flutter:
