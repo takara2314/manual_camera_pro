@@ -2,39 +2,41 @@
 //  Generated file. Do not edit.
 //
 
+// clang-format off
+
 #import "GeneratedPluginRegistrant.h"
 
-#if __has_include(<e2e/E2EPlugin.h>)
-#import <e2e/E2EPlugin.h>
+#if __has_include(<integration_test/IntegrationTestPlugin.h>)
+#import <integration_test/IntegrationTestPlugin.h>
 #else
-@import e2e;
+@import integration_test;
 #endif
 
-#if __has_include(<path_provider/PathProviderPlugin.h>)
-#import <path_provider/PathProviderPlugin.h>
+#if __has_include(<manual_camera_pro/CameraPlugin.h>)
+#import <manual_camera_pro/CameraPlugin.h>
 #else
-@import path_provider;
+@import manual_camera_pro;
 #endif
 
-#if __has_include(<video_player/FLTVideoPlayerPlugin.h>)
-#import <video_player/FLTVideoPlayerPlugin.h>
+#if __has_include(<path_provider_foundation/PathProviderPlugin.h>)
+#import <path_provider_foundation/PathProviderPlugin.h>
 #else
-@import video_player;
+@import path_provider_foundation;
 #endif
 
-#if __has_include(<manual_camera/CameraPlugin.h>)
-#import <manual_camera/CameraPlugin.h>
+#if __has_include(<video_player_avfoundation/FLTVideoPlayerPlugin.h>)
+#import <video_player_avfoundation/FLTVideoPlayerPlugin.h>
 #else
-@import manual_camera;
+@import video_player_avfoundation;
 #endif
 
 @implementation GeneratedPluginRegistrant
 
 + (void)registerWithRegistry:(NSObject<FlutterPluginRegistry>*)registry {
-  [E2EPlugin registerWithRegistrar:[registry registrarForPlugin:@"E2EPlugin"]];
-  [FLTPathProviderPlugin registerWithRegistrar:[registry registrarForPlugin:@"FLTPathProviderPlugin"]];
-  [FLTVideoPlayerPlugin registerWithRegistrar:[registry registrarForPlugin:@"FLTVideoPlayerPlugin"]];
+  [IntegrationTestPlugin registerWithRegistrar:[registry registrarForPlugin:@"IntegrationTestPlugin"]];
   [CameraPlugin registerWithRegistrar:[registry registrarForPlugin:@"CameraPlugin"]];
+  [PathProviderPlugin registerWithRegistrar:[registry registrarForPlugin:@"PathProviderPlugin"]];
+  [FLTVideoPlayerPlugin registerWithRegistrar:[registry registrarForPlugin:@"FLTVideoPlayerPlugin"]];
 }
 
 @end

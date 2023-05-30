@@ -3,8 +3,8 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:typed_data';
 
+import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -87,7 +87,7 @@ String serializeResolutionPreset(ResolutionPreset resolutionPreset) {
     case ResolutionPreset.low:
       return 'low';
   }
-  throw ArgumentError('Unknown ResolutionPreset value');
+  // throw ArgumentError('Unknown ResolutionPreset value');
 }
 
 /// Returns the white balance preset as a String.
@@ -112,7 +112,7 @@ String serializeWhiteBalancePreset(WhiteBalancePreset whiteBalancePreset) {
     case WhiteBalancePreset.shade:
       return 'shade';
   }
-  throw ArgumentError('Unknown WhiteBalancePreset value');
+  // throw ArgumentError('Unknown WhiteBalancePreset value');
 }
 
 CameraLensDirection _parseCameraLensDirection(String string) {
@@ -132,9 +132,9 @@ CameraLensDirection _parseCameraLensDirection(String string) {
 /// May throw a [CameraException].
 Future<List<CameraDescription>> availableCameras() async {
   try {
-    final List<Map<dynamic, dynamic>> cameras = await _channel
+    final List<Map>? cameras = await _channel
         .invokeListMethod<Map<dynamic, dynamic>>('availableCameras');
-    return cameras.map((Map<dynamic, dynamic> camera) {
+    return cameras!.map((Map<dynamic, dynamic> camera) {
       return CameraDescription(
         name: camera['name'],
         lensDirection: _parseCameraLensDirection(camera['lensFacing']),
@@ -142,12 +142,16 @@ Future<List<CameraDescription>> availableCameras() async {
       );
     }).toList();
   } on PlatformException catch (e) {
-    throw CameraException(e.code, e.message);
+    throw CameraException(e.code, e.message!);
   }
 }
 
 class CameraDescription {
-  CameraDescription({this.name, this.lensDirection, this.sensorOrientation});
+  CameraDescription({
+    required this.name,
+    required this.lensDirection,
+    required this.sensorOrientation
+  });
 
   final String name;
   final CameraLensDirection lensDirection;
@@ -170,7 +174,7 @@ class CameraDescription {
 
   @override
   int get hashCode {
-    return hashValues(name, lensDirection);
+    return Object.hash(name, lensDirection);
   }
 
   @override
@@ -207,13 +211,13 @@ class CameraPreview extends StatelessWidget {
 /// The state of a [CameraController].
 class CameraValue {
   const CameraValue({
-    this.isInitialized,
+    required this.isInitialized,
     this.errorDescription,
     this.previewSize,
-    this.isRecordingVideo,
-    this.isTakingPicture,
-    this.isStreamingImages,
-    bool isRecordingPaused,
+    required this.isRecordingVideo,
+    required this.isTakingPicture,
+    required this.isStreamingImages,
+    required isRecordingPaused,
   }) : _isRecordingPaused = isRecordingPaused;
 
   const CameraValue.uninitialized()
@@ -242,28 +246,28 @@ class CameraValue {
   /// True when camera [isRecordingVideo] and recording is paused.
   bool get isRecordingPaused => isRecordingVideo && _isRecordingPaused;
 
-  final String errorDescription;
+  final String? errorDescription;
 
   /// The size of the preview in pixels.
   ///
   /// Is `null` until  [isInitialized] is `true`.
-  final Size previewSize;
+  final Size? previewSize;
 
   /// Convenience getter for `previewSize.height / previewSize.width`.
   ///
   /// Can only be called when [initialize] is done.
-  double get aspectRatio => previewSize.height / previewSize.width;
+  double get aspectRatio => previewSize!.height / previewSize!.width;
 
   bool get hasError => errorDescription != null;
 
   CameraValue copyWith({
-    bool isInitialized,
-    bool isRecordingVideo,
-    bool isTakingPicture,
-    bool isStreamingImages,
-    String errorDescription,
-    Size previewSize,
-    bool isRecordingPaused,
+    bool? isInitialized,
+    bool? isRecordingVideo,
+    bool? isTakingPicture,
+    bool? isStreamingImages,
+    String? errorDescription,
+    Size? previewSize,
+    bool? isRecordingPaused,
   }) {
     return CameraValue(
       isInitialized: isInitialized ?? this.isInitialized,
@@ -313,7 +317,7 @@ class CameraController extends ValueNotifier<CameraValue> {
   final bool enableAudio;
 
   /// Flash state
-  bool isFlashOn;
+  late bool isFlashOn;
 
   /// ISO value
   final int iso;
@@ -327,11 +331,11 @@ class CameraController extends ValueNotifier<CameraValue> {
   /// Distance from camera to focused object
   final double focusDistance;
 
-  int _textureId;
+  late int _textureId;
   bool _isDisposed = false;
-  StreamSubscription<dynamic> _eventSubscription;
-  StreamSubscription<dynamic> _imageStreamSubscription;
-  Completer<void> _creatingCompleter;
+  late StreamSubscription<dynamic> _eventSubscription;
+  StreamSubscription<dynamic>? _imageStreamSubscription;
+  late Completer<void> _creatingCompleter;
 
   /// Initializes the camera on the device.
   ///
@@ -342,7 +346,7 @@ class CameraController extends ValueNotifier<CameraValue> {
     }
     try {
       _creatingCompleter = Completer<void>();
-      final Map<String, dynamic> reply =
+      final Map<String, dynamic>? reply =
           await _channel.invokeMapMethod<String, dynamic>(
         'initialize',
         <String, dynamic>{
@@ -355,7 +359,7 @@ class CameraController extends ValueNotifier<CameraValue> {
           'focusDistance': 1 / focusDistance,
         },
       );
-      _textureId = reply['textureId'];
+      _textureId = reply!['textureId'];
       value = value.copyWith(
         isInitialized: true,
         previewSize: Size(
@@ -364,7 +368,7 @@ class CameraController extends ValueNotifier<CameraValue> {
         ),
       );
     } on PlatformException catch (e) {
-      throw CameraException(e.code, e.message);
+      throw CameraException(e.code, e.message!);
     }
     _eventSubscription =
         EventChannel('flutter.io/cameraPlugin/cameraEvents$_textureId')
@@ -439,7 +443,7 @@ class CameraController extends ValueNotifier<CameraValue> {
       value = value.copyWith(isTakingPicture: false);
     } on PlatformException catch (e) {
       value = value.copyWith(isTakingPicture: false);
-      throw CameraException(e.code, e.message);
+      throw CameraException(e.code, e.message!);
     }
   }
 
@@ -480,7 +484,7 @@ class CameraController extends ValueNotifier<CameraValue> {
       await _channel.invokeMethod<void>('startImageStream');
       value = value.copyWith(isStreamingImages: true);
     } on PlatformException catch (e) {
-      throw CameraException(e.code, e.message);
+      throw CameraException(e.code, e.message!);
     }
     const EventChannel cameraEventChannel =
         EventChannel('plugins.flutter.io/camera/imageStream');
@@ -501,7 +505,7 @@ class CameraController extends ValueNotifier<CameraValue> {
         },
       );
     } on PlatformException catch (e) {
-      throw CameraException(e.code, e.message);
+      throw CameraException(e.code, e.message!);
     }
   }
 
@@ -533,10 +537,10 @@ class CameraController extends ValueNotifier<CameraValue> {
       value = value.copyWith(isStreamingImages: false);
       await _channel.invokeMethod<void>('stopImageStream');
     } on PlatformException catch (e) {
-      throw CameraException(e.code, e.message);
+      throw CameraException(e.code, e.message!);
     }
 
-    await _imageStreamSubscription.cancel();
+    await _imageStreamSubscription!.cancel();
     _imageStreamSubscription = null;
   }
 
@@ -577,7 +581,7 @@ class CameraController extends ValueNotifier<CameraValue> {
       );
       value = value.copyWith(isRecordingVideo: true, isRecordingPaused: false);
     } on PlatformException catch (e) {
-      throw CameraException(e.code, e.message);
+      throw CameraException(e.code, e.message!);
     }
   }
 
@@ -602,7 +606,7 @@ class CameraController extends ValueNotifier<CameraValue> {
         <String, dynamic>{'textureId': _textureId},
       );
     } on PlatformException catch (e) {
-      throw CameraException(e.code, e.message);
+      throw CameraException(e.code, e.message!);
     }
   }
 
@@ -629,7 +633,7 @@ class CameraController extends ValueNotifier<CameraValue> {
         <String, dynamic>{'textureId': _textureId},
       );
     } on PlatformException catch (e) {
-      throw CameraException(e.code, e.message);
+      throw CameraException(e.code, e.message!);
     }
   }
 
@@ -656,7 +660,7 @@ class CameraController extends ValueNotifier<CameraValue> {
         <String, dynamic>{'textureId': _textureId},
       );
     } on PlatformException catch (e) {
-      throw CameraException(e.code, e.message);
+      throw CameraException(e.code, e.message!);
     }
   }
 
@@ -668,13 +672,11 @@ class CameraController extends ValueNotifier<CameraValue> {
     }
     _isDisposed = true;
     super.dispose();
-    if (_creatingCompleter != null) {
-      await _creatingCompleter.future;
-      await _channel.invokeMethod<void>(
-        'dispose',
-        <String, dynamic>{'textureId': _textureId},
-      );
-      await _eventSubscription?.cancel();
-    }
+    await _creatingCompleter.future;
+    await _channel.invokeMethod<void>(
+      'dispose',
+      <String, dynamic>{'textureId': _textureId},
+    );
+    await _eventSubscription.cancel();
   }
 }
